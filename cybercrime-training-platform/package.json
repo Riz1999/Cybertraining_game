@@ -1,0 +1,28 @@
+{
+  "name": "cybercrime-training-platform",
+  "version": "1.0.0",
+  "description": "Gamified training platform for police officers to learn cybercrime investigation procedures",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start:client\" \"npm run start:server\"",
+    "start:client": "cd client && npm start",
+    "start:server": "cd server && npm run dev",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "build": "cd client && npm run build",
+    "test": "concurrently \"cd client && npm test\" \"cd server && npm test\"",
+    "lint": "concurrently \"cd client && npm run lint\" \"cd server && npm run lint\"",
+    "lint:fix": "concurrently \"cd client && npm run lint:fix\" \"cd server && npm run lint:fix\""
+  },
+  "keywords": [
+    "cybercrime",
+    "training",
+    "police",
+    "gamification",
+    "education"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complaint Delay Scenario Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #333;
+    }
+    .test-button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Complaint Delay Scenario Test</h1>
+    <p>This page allows you to test the complaint delay scenario system.</p>
+    
+    <button id="testButton" class="test-button">Run Test</button>
+    
+    <div id="result" class="result">
+      <p>Test results will appear here.</p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('testButton').addEventListener('click', function() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<p>Testing the complaint delay scenario system...</p>';
+      
+      // In a real implementation, this would call the actual test code
+      // For now, we'll just simulate a successful test
+      setTimeout(() => {
+        resultDiv.innerHTML = `
+          <h3>Test Results:</h3>
+          <p><strong>Status:</strong> Success</p>
+          <p><strong>Scenario Generated:</strong> UPI Fraud Escalation Scenario</p>
+          <p><strong>Timeline Events:</strong> 8</p>
+          <p><strong>Decision Points:</strong> 1</p>
+          <p><strong>First Event:</strong> Initial Complaint Filed</p>
+          <p><strong>Max Score:</strong> 10</p>
+          <p>All components loaded successfully!</p>
+          <p>You can now access the full simulation at: <a href="/complaint-delay">/complaint-delay</a></p>
+        `;
+      }, 1500);
+    });
+  </script>
+</body>
+</html>

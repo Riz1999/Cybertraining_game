@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complaint Delay Scenario Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c5282;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .button {
+      background-color: #4299e1;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+    .button:hover {
+      background-color: #3182ce;
+    }
+    .button.secondary {
+      background-color: #a0aec0;
+    }
+    .button.secondary:hover {
+      background-color: #718096;
+    }
+    .timeline {
+      position: relative;
+      margin: 20px 0;
+      padding-left: 30px;
+    }
+    .timeline:before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #e2e8f0;
+    }
+    .timeline-event {
+      position: relative;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f7fafc;
+      border-radius: 4px;
+      border-left: 4px solid #4299e1;
+    }
+    .timeline-event:before {
+      content: '';
+      position: absolute;
+      left: -34px;
+      top: 12px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #4299e1;
+      border: 2px solid white;
+    }
+    .timeline-event.critical {
+      border-left-color: #f56565;
+    }
+    .timeline-event.critical:before {
+      background: #f56565;
+    }
+    .timeline-event.decision {
+      border-left-color: #ecc94b;
+    }
+    .timeline-event.decision:before {
+      background: #ecc94b;
+    }
+    .decision-options {
+      margin-top: 20px;
+    }
+    .decision-option {
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .decision-option:hover {
+      background-color: #ebf8ff;
+      border-color: #4299e1;
+    }
+    .decision-option.selected {
+      background-color: #ebf8ff;
+      border-color: #4299e1;
+    }
+    .feedback {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .feedback.correct {
+      background-color: #c6f6d5;
+      border: 1px solid #9ae6b4;
+      color: #276749;
+    }
+    .feedback.incorrect {
+      background-color: #fed7d7;
+      border: 1px solid #feb2b2;
+      color: #9b2c2c;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #f7fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .score {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c5282;
+    }
+  </style>
+</head>
+<body>
+  <h1>Complaint Delay Scenario Test</h1>
+  
+  <div class="card">
+    <h2>Introduction</h2>
+    <p>This page allows you to test the Complaint Delay Scenario system for Module 4: Escalation to FIR and CCTNS.</p>
+    <p>In this simulation, you will practice handling cases where complaints have been delayed in processing. You'll need to analyze the timeline of events, understand the context, and make appropriate decisions about when to escalate a complaint to an FIR and file it in the CCTNS system.</p>
+    
+    <h3>Your Objectives:</h3>
+    <ul>
+      <li>Review the case timeline and understand the sequence of events</li>
+      <li>Identify critical points where action should have been taken</li>
+      <li>Make appropriate decisions about escalation to FIR</li>
+      <li>Understand when and why cases should be filed in CCTNS</li>
+    </ul>
+    
+    <button id="startButton" class="button">Start Simulation</button>
+  </div>
+  
+  <div id="simulationContainer" style="display: none;">
+    <div class="card">
+      <h2>UPI Fraud Case #CYB-2023-0142</h2>
+      <p>A case of financial fraud where the victim was tricked into making multiple UPI payments. The victim received a call from someone claiming to be from his bank, saying his account would be blocked unless he verified his details through a UPI transaction.</p>
+      
+      <div class="timeline" id="timeline">
+        <!-- Timeline events will be inserted here -->
+      </div>
+    </div>
+    
+    <div class="card" id="decisionCard" style="display: none;">
+      <h2>Case Escalation Decision</h2>
+      <p>The case has been delayed for 14 days with minimal progress. The victim has filed a formal complaint about the delay. What action should be taken?</p>
+      
+      <div class="decision-options">
+        <div class="decision-option" data-value="wait">
+          <strong>Wait for more information from the bank</strong>
+          <p>Request additional transaction details before proceeding</p>
+        </div>
+        <div class="decision-option" data-value="escalate">
+          <strong>Escalate to FIR and file in CCTNS</strong>
+          <p>Convert the complaint to a formal FIR and enter it into the CCTNS system</p>
+        </div>
+        <div class="decision-option" data-value="close">
+          <strong>Close the complaint as unresolvable</strong>
+          <p>Inform the victim that there is insufficient evidence to proceed</p>
+        </div>
+      </div>
+      
+      <button id="submitDecision" class="button" disabled>Submit Decision</button>
+      
+      <div id="feedback" style="display: none;"></div>
+    </div>
+    
+    <div class="card" id="resultCard" style="display: none;">
+      <h2>Simulation Complete</h2>
+      <div class="result">
+        <h3>Your Performance</h3>
+        <div class="score" id="score">Score: 0%</div>
+        <p id="resultFeedback"></p>
+      </div>
+      <button id="tryAgainButton" class="button">Try Again</button>
+      <button id="returnButton" class="button secondary">Return to Module</button>
+    </div>
+  </div>
+  
+  <script>
+    // Sample timeline events
+    const timelineEvents = [
+      {
+        id: '1',
+        title: 'Initial Complaint Filed',
+        description: 'Victim reported fraudulent UPI transactions totaling ₹75,000 to the cybercrime portal',
+        timestamp: '2023-06-01',
+        type: 'standard'
+      },
+      {
+        id: '2',
+        title: 'Complaint Registered',
+        description: 'Complaint assigned reference number CYB-2023-0142 and routed to local cybercrime cell',
+        timestamp: '2023-06-02',
+        type: 'standard'
+      },
+      {
+        id: '3',
+        title: 'Initial Investigation',
+        description: 'Officer contacted victim for additional details about the fraudulent transactions',
+        timestamp: '2023-06-03',
+        type: 'standard'
+      },
+      {
+        id: '4',
+        title: 'Bank Contacted',
+        description: 'Request sent to bank for transaction details and recipient account information',
+        timestamp: '2023-06-05',
+        type: 'standard'
+      },
+      {
+        id: '5',
+        title: 'Bank Response Received',
+        description: 'Bank provided transaction details showing funds transferred to accounts in another state',
+        timestamp: '2023-06-07',
+        type: 'standard'
+      },
+      {
+        id: '6',
+        title: 'No Progress Update',
+        description: 'Victim called to inquire about case status, no significant progress to report',
+        timestamp: '2023-06-10',
+        type: 'critical'
+      },
+      {
+        id: '7',
+        title: 'Victim Filed Complaint About Delay',
+        description: 'Victim submitted formal complaint about lack of progress in the investigation',
+        timestamp: '2023-06-12',
+        type: 'critical'
+      },
+      {
+        id: '8',
+        title: 'Case Review Required',
+        description: 'Senior officer requested case review due to delay and victim complaint',
+        timestamp: '2023-06-14',
+        type: 'decision'
+      }
+    ];
+    
+    // Decision options
+    const decisionOptions = {
+      'wait': {
+        feedback: 'This further delays the investigation. The bank has already provided transaction details, and waiting longer reduces the chances of fund recovery.',
+        isCorrect: false,
+        points: 0
+      },
+      'escalate': {
+        feedback: 'Correct decision. The case meets the criteria for escalation: significant financial loss, clear evidence of fraud, and delayed resolution.',
+        isCorrect: true,
+        points: 10
+      },
+      'close': {
+        feedback: 'Inappropriate action. The case has valid evidence and should be pursued further through proper legal channels.',
+        isCorrect: false,
+        points: -5
+      }
+    };
+    
+    // DOM elements
+    const startButton = document.getElementById('startButton');
+    const simulationContainer = document.getElementById('simulationContainer');
+    const timeline = document.getElementById('timeline');
+    const decisionCard = document.getElementById('decisionCard');
+    const submitDecisionButton = document.getElementById('submitDecision');
+    const feedbackDiv = document.getElementById('feedback');
+    const resultCard = document.getElementById('resultCard');
+    const scoreDiv = document.getElementById('score');
+    const resultFeedbackDiv = document.getElementById('resultFeedback');
+    const tryAgainButton = document.getElementById('tryAgainButton');
+    const returnButton = document.getElementById('returnButton');
+    
+    // Selected decision
+    let selectedDecision = null;
+    
+    // Start simulation
+    startButton.addEventListener('click', () => {
+      startButton.parentElement.style.display = 'none';
+      simulationContainer.style.display = 'block';
+      
+      // Render timeline events
+      renderTimeline();
+      
+      // Show decision card after a delay
+      setTimeout(() => {
+        decisionCard.style.display = 'block';
+      }, 2000);
+    });
+    
+    // Render timeline events
+    function renderTimeline() {
+      timeline.innerHTML = '';
+      
+      timelineEvents.forEach(event => {
+        const eventElement = document.createElement('div');
+        eventElement.className = `timeline-event ${event.type}`;
+        eventElement.innerHTML = `
+          <h3>${event.title}</h3>
+          <p>${event.description}</p>
+          <small>${event.timestamp}</small>
+        `;
+        timeline.appendChild(eventElement);
+      });
+    }
+    
+    // Handle decision option selection
+    document.querySelectorAll('.decision-option').forEach(option => {
+      option.addEventListener('click', () => {
+        // Remove selected class from all options
+        document.querySelectorAll('.decision-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        
+        // Add selected class to clicked option
+        option.classList.add('selected');
+        
+        // Enable submit button
+        submitDecisionButton.disabled = false;
+        
+        // Store selected decision
+        selectedDecision = option.dataset.value;
+      });
+    });
+    
+    // Handle decision submission
+    submitDecisionButton.addEventListener('click', () => {
+      if (!selectedDecision) return;
+      
+      // Get decision details
+      const decision = decisionOptions[selectedDecision];
+      
+      // Show feedback
+      feedbackDiv.className = `feedback ${decision.isCorrect ? 'correct' : 'incorrect'}`;
+      feedbackDiv.innerHTML = `
+        <h3>${decision.isCorrect ? 'Correct Decision' : 'Incorrect Decision'}</h3>
+        <p>${decision.feedback}</p>
+        <button id="continueButton" class="button">Continue</button>
+      `;
+      feedbackDiv.style.display = 'block';
+      
+      // Handle continue button
+      document.getElementById('continueButton').addEventListener('click', () => {
+        // Show result card
+        decisionCard.style.display = 'none';
+        resultCard.style.display = 'block';
+        
+        // Update score
+        scoreDiv.textContent = `Score: ${decision.isCorrect ? '100%' : '0%'}`;
+        
+        // Update result feedback
+        if (decision.isCorrect) {
+          resultFeedbackDiv.innerHTML = `
+            <p>You made the correct decision to escalate the case to an FIR and file it in CCTNS.</p>
+            <p>Key learnings:</p>
+            <ul>
+              <li>Timely escalation to FIR is critical for effective cybercrime investigation</li>
+              <li>CCTNS filing ensures proper documentation and legal follow-up</li>
+              <li>Understanding escalation criteria helps prioritize cases appropriately</li>
+            </ul>
+          `;
+        } else {
+          resultFeedbackDiv.innerHTML = `
+            <p>You made an incorrect decision. The case should have been escalated to an FIR and filed in CCTNS.</p>
+            <p>Areas for improvement:</p>
+            <ul>
+              <li>Review the escalation criteria for cybercrime cases</li>
+              <li>Consider the time elapsed since the initial complaint</li>
+              <li>Evaluate the severity and evidence available in the case</li>
+            </ul>
+          `;
+        }
+      });
+    });
+    
+    // Handle try again button
+    tryAgainButton.addEventListener('click', () => {
+      // Reset simulation
+      resultCard.style.display = 'none';
+      decisionCard.style.display = 'block';
+      feedbackDiv.style.display = 'none';
+      submitDecisionButton.disabled = true;
+      selectedDecision = null;
+      
+      // Remove selected class from all options
+      document.querySelectorAll('.decision-option').forEach(opt => {
+        opt.classList.remove('selected');
+      });
+    });
+    
+    // Handle return button
+    returnButton.addEventListener('click', () => {
+      // In a real application, this would navigate to the module page
+      alert('In the real application, this would return to the module page.');
+      window.location.href = '/';
+    });
+  </script>
+</body>
+</html>

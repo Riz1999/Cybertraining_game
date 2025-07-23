@@ -1,0 +1,516 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import complaintAnalysisContent from '../../data/complaintAnalysisContent';
+import ModulePrerequisites from './ModulePrerequisites';
+import ModuleCompletion from './ModuleCompletion';
+import { useAuth } from '../../contexts/AuthContext';
+import { useProgress } from '../../contexts/ProgressContext';
+
+// UI Components
+import Card from '../../components/ui/Card';
+import Tabs from '../../components/ui/Tabs';
+import Button from '../../components/ui/Button';
+import Alert from '../../components/ui/Alert';
+import ProgressBar from '../../components/ui/ProgressBar';
+import Accordion from '../../components/ui/Accordion';
+
+// Activity Components
+import MultipleChoiceQuestion from '../activities/MultipleChoiceQuestion';
+import DragDropActivity from '../activities/DragDropActivity';
+import MatchPairsActivity from '../activities/MatchPairsActivity';
+import HotspotActivity from '../activities/HotspotActivity';
+import QuizComponent from '../activities/QuizComponent';
+import ColorFeedbackQuiz from '../activities/ColorFeedbackQuiz';
+
+const ComplaintAnalysisModule = () => {
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const { updateProgress, getUserProgress } = useProgress();
+
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Function to handle tab changes
+  const handleTabChange = (tabIndex) => {
+    setActiveTab(tabIndex);
+  };
+  const [userProgress, setUserProgress] = useState({
+    jurisdictionCompleted: false,
+    evidenceExtractionCompleted: false,
+    firFieldsCompleted: false,
+    quizCompleted: false,
+    overallScore: 0,
+    maxScore: 40
+  });
+  const [moduleCompleted, setModuleCompleted] = useState(false);
+  const [showPrerequisites, setShowPrerequisites] = useState(true);
+
+  // Check if user has completed prerequisites
+  useEffect(() => {
+    const checkPrerequisites = async () => {
+      // Skip prerequisites check if no user is logged in
+      if (!currentUser || !currentUser.uid) {
+        setShowPrerequisites(false); // Allow access for testing
+        return;
+      }
+
+      const progress = await getUserProgress(currentUser.uid);
+      if (progress && progress.completedModules &&
+        progress.completedModules.includes('module-4-escalation-fir')) {
+        setShowPrerequisites(false);
+      }
+    };
+
+    checkPrerequisites();
+  }, [currentUser, getUserProgress]);
+
+  // Handle task completion
+  const handleTaskCompletion = (taskId, score, maxScore) => {
+    const updatedProgress = { ...userProgress };
+
+    switch (taskId) {
+      case 'jurisdiction-identification':
+        updatedProgress.jurisdictionCompleted = true;
+        break;
+      case 'evidence-extraction':
+        updatedProgress.evidenceExtractionCompleted = true;
+        break;
+      case 'fir-fields':
+        updatedProgress.firFieldsCompleted = true;
+        break;
+
+      case 'quiz':
+        updatedProgress.quizCompleted = true;
+        break;
+      default:
+        break;
+    }
+
+    // Update overall score
+    updatedProgress.overallScore += score;
+
+    // Check if all tasks are completed
+    const allTasksCompleted =
+      updatedProgress.jurisdictionCompleted &&
+      updatedProgress.evidenceExtractionCompleted &&
+      updatedProgress.firFieldsCompleted &&
+      updatedProgress.quizCompleted;
+
+    if (allTasksCompleted) {
+      setModuleCompleted(true);
+      // Save progress to backend (only if user is logged in)
+      if (currentUser && currentUser.uid) {
+        updateProgress(currentUser.uid, {
+          moduleId: 'module-5-financial-fraud-investigation',
+          activityId: 'complaint-analysis',
+          completed: true,
+          score: updatedProgress.overallScore
+        });
+      }
+    }
+
+    setUserProgress(updatedProgress);
+  };
+
+  // Handle module completion
+  const handleModuleCompletion = () => {
+    navigate('/modules/module-5-financial-fraud-investigation/evidence-collection');
+  };
+
+  // If prerequisites not met, show prerequisites component
+  if (showPrerequisites) {
+    return (
+      <ModulePrerequisites
+        moduleId="module-5-financial-fraud-investigation"
+        prerequisites={[
+          {
+            moduleId: 'module-4-escalation-fir',
+            title: 'Escalation to FIR and CCTNS',
+            reason: 'Understanding FIR filing procedures is essential before conducting full investigations.'
+          }
+        ]}
+      />
+    );
+  }
+
+  // If module is completed, show completion component
+  if (moduleCompleted) {
+    return (
+      <ModuleCompletion
+        title="Level 1 Completed: Complaint Analysis"
+        score={userProgress.overallScore}
+        maxScore={userProgress.maxScore}
+        message="You have successfully completed the first level of the Financial Fraud Investigation module. You've demonstrated your ability to analyze complaints, identify jurisdiction, and extract key evidence."
+        nextModule={{
+          title: "Level 2: First Response and Evidence Collection",
+          description: "Learn proper procedures for securing digital evidence and initiating the investigation."
+        }}
+        onContinue={handleModuleCompletion}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Header Section */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="container mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Module 5: Financial Fraud Investigation
+              </h1>
+              <div className="flex items-center space-x-2">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                  Level 1
+                </span>
+                <span className="text-gray-600">{complaintAnalysisContent.title}</span>
+              </div>
+            </div>
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Your Score</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {userProgress.overallScore}/{userProgress.maxScore}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-6 py-8">
+        {/* Progress Card */}
+        <Card className="mb-8 shadow-lg border-0 bg-white">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                  <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                Your Progress
+              </h3>
+              <div className="text-right">
+                <span className="text-sm text-gray-500">Overall Score</span>
+                <div className="text-lg font-bold text-gray-900">
+                  {Math.round((userProgress.overallScore / userProgress.maxScore) * 100)}%
+                </div>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <ProgressBar
+                percentage={(userProgress.overallScore / userProgress.maxScore) * 100}
+                label={`${Math.round((userProgress.overallScore / userProgress.maxScore) * 100)}% Complete`}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className={`p-4 rounded-xl text-center transition-all duration-200 ${
+                userProgress.jurisdictionCompleted 
+                  ? 'bg-green-50 border-2 border-green-200 shadow-sm' 
+                  : 'bg-gray-50 border-2 border-gray-200'
+              }`}>
+                <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                  userProgress.jurisdictionCompleted ? 'bg-green-500' : 'bg-gray-300'
+                }`}>
+                  {userProgress.jurisdictionCompleted ? (
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <span className="text-white text-sm font-bold">1</span>
+                  )}
+                </div>
+                <p className={`text-sm font-medium ${
+                  userProgress.jurisdictionCompleted ? 'text-green-800' : 'text-gray-600'
+                }`}>
+                  Jurisdiction
+                </p>
+              </div>
+              
+              <div className={`p-4 rounded-xl text-center transition-all duration-200 ${
+                userProgress.evidenceExtractionCompleted 
+                  ? 'bg-green-50 border-2 border-green-200 shadow-sm' 
+                  : 'bg-gray-50 border-2 border-gray-200'
+              }`}>
+                <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                  userProgress.evidenceExtractionCompleted ? 'bg-green-500' : 'bg-gray-300'
+                }`}>
+                  {userProgress.evidenceExtractionCompleted ? (
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <span className="text-white text-sm font-bold">2</span>
+                  )}
+                </div>
+                <p className={`text-sm font-medium ${
+                  userProgress.evidenceExtractionCompleted ? 'text-green-800' : 'text-gray-600'
+                }`}>
+                  Evidence
+                </p>
+              </div>
+              
+              <div className={`p-4 rounded-xl text-center transition-all duration-200 ${
+                userProgress.firFieldsCompleted 
+                  ? 'bg-green-50 border-2 border-green-200 shadow-sm' 
+                  : 'bg-gray-50 border-2 border-gray-200'
+              }`}>
+                <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                  userProgress.firFieldsCompleted ? 'bg-green-500' : 'bg-gray-300'
+                }`}>
+                  {userProgress.firFieldsCompleted ? (
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <span className="text-white text-sm font-bold">3</span>
+                  )}
+                </div>
+                <p className={`text-sm font-medium ${
+                  userProgress.firFieldsCompleted ? 'text-green-800' : 'text-gray-600'
+                }`}>
+                  FIR Fields
+                </p>
+              </div>
+              
+              <div className={`p-4 rounded-xl text-center transition-all duration-200 ${
+                userProgress.quizCompleted 
+                  ? 'bg-green-50 border-2 border-green-200 shadow-sm' 
+                  : 'bg-gray-50 border-2 border-gray-200'
+              }`}>
+                <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                  userProgress.quizCompleted ? 'bg-green-500' : 'bg-gray-300'
+                }`}>
+                  {userProgress.quizCompleted ? (
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <span className="text-white text-sm font-bold">4</span>
+                  )}
+                </div>
+                <p className={`text-sm font-medium ${
+                  userProgress.quizCompleted ? 'text-green-800' : 'text-gray-600'
+                }`}>
+                  Quiz
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+      <Tabs
+        tabs={[
+          {
+            label: "Scenario",
+            content: (
+              <Card>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-4">{complaintAnalysisContent.scenario.title}</h3>
+                  <p className="text-gray-700 mb-6">{complaintAnalysisContent.scenario.description}</p>
+
+                  <div className="mb-6">
+                    {complaintAnalysisContent.scenario.details}
+                  </div>
+
+                  <Accordion title="Complaint Details" defaultOpen={true}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.entries(complaintAnalysisContent.scenario.complaintDetails).map(([key, value]) => (
+                        <div key={key} className="flex justify-between border-b pb-2">
+                          <span className="font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                          <span>{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Accordion>
+
+                  <Accordion title="Evidence Items" defaultOpen={true}>
+                    <div className="space-y-6">
+                      {complaintAnalysisContent.scenario.evidenceItems.map(item => (
+                        <div key={item.id} className="border rounded-lg p-4">
+                          <h4 className="font-medium text-lg mb-2">{item.title}</h4>
+                          <p className="text-gray-600 mb-4">{item.description}</p>
+
+                          {item.type === "document" && item.keyInfo && (
+                            <div className="bg-gray-50 p-3 rounded">
+                              <h5 className="font-medium mb-2">Key Information</h5>
+                              <ul className="list-disc pl-5">
+                                {item.keyInfo.map((info, index) => (
+                                  <li key={index}>{info}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Placeholder for image evidence - in a real app, this would display the actual image */}
+                          {item.type === "image" && (
+                            <div className="bg-gray-200 h-48 flex items-center justify-center rounded">
+                              <p className="text-gray-600">[Image: {item.title}]</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Accordion>
+
+                  <div className="mt-6">
+                    <Button
+                      variant="primary"
+                      onClick={() => handleTabChange(1)}
+                    >
+                      Begin Investigation Tasks
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )
+          },
+          {
+            label: "Investigation Tasks",
+            content: (
+              <Card>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-6">Investigation Tasks</h3>
+
+                  <Accordion
+                    title={complaintAnalysisContent.tasks[0].title}
+                    defaultOpen={!userProgress.jurisdictionCompleted}
+                    disabled={userProgress.jurisdictionCompleted}
+                  >
+                    <div className="mb-6">
+                      <p className="mb-4">{complaintAnalysisContent.tasks[0].description}</p>
+                      <MultipleChoiceQuestion
+                        question={complaintAnalysisContent.tasks[0].question}
+                        options={complaintAnalysisContent.tasks[0].options}
+                        onComplete={(score) => handleTaskCompletion('jurisdiction-identification', score, 10)}
+                        disabled={userProgress.jurisdictionCompleted}
+                      />
+                    </div>
+                  </Accordion>
+
+                  <Accordion
+                    title={complaintAnalysisContent.tasks[1].title}
+                    defaultOpen={userProgress.jurisdictionCompleted && !userProgress.evidenceExtractionCompleted}
+                    disabled={!userProgress.jurisdictionCompleted || userProgress.evidenceExtractionCompleted}
+                  >
+                    <div className="mb-6">
+                      <p className="mb-4">{complaintAnalysisContent.tasks[1].description}</p>
+                      <DragDropActivity
+                        instructions={complaintAnalysisContent.tasks[1].instructions}
+                        items={complaintAnalysisContent.tasks[1].items}
+                        categories={complaintAnalysisContent.tasks[1].categories}
+                        onComplete={(score) => handleTaskCompletion('evidence-extraction', score, 10)}
+                        disabled={!userProgress.jurisdictionCompleted || userProgress.evidenceExtractionCompleted}
+                      />
+                    </div>
+                  </Accordion>
+
+                  <Accordion
+                    title={complaintAnalysisContent.tasks[2].title}
+                    defaultOpen={true}
+                    disabled={false}
+                  >
+                    <div className="mb-6">
+                      <p className="mb-4">{complaintAnalysisContent.tasks[2].description}</p>
+                      <MatchPairsActivity
+                        instructions={complaintAnalysisContent.tasks[2].instructions}
+                        pairs={complaintAnalysisContent.tasks[2].pairs}
+                        onComplete={(score) => handleTaskCompletion('fir-fields', score, 10)}
+                        disabled={false}
+                      />
+                    </div>
+                  </Accordion>
+
+                  <div className="mt-6">
+                    <Button
+                      variant="primary"
+                      onClick={() => setActiveTab(2)}
+                      disabled={false}
+                    >
+                      Continue to Knowledge Check
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )
+          },
+          {
+            label: "Knowledge Check",
+            content: (
+              <Card>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-4">{complaintAnalysisContent.quiz.title}</h3>
+                  <p className="text-gray-700 mb-6">{complaintAnalysisContent.quiz.description}</p>
+
+                  <ColorFeedbackQuiz
+                    questions={complaintAnalysisContent.quiz.questions}
+                    onComplete={(score) => handleTaskCompletion('quiz', score, 10)}
+                  />
+
+                  {userProgress.quizCompleted && (
+                    <div className="mt-6">
+                      <Alert type="success" title="All tasks completed!">
+                        You have successfully completed all the tasks in this level. Review the summary to continue.
+                      </Alert>
+
+                      <div className="mt-4">
+                        <Button
+                          variant="primary"
+                          onClick={() => setActiveTab(3)}
+                        >
+                          View Summary
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )
+          },
+          {
+            label: "Summary",
+            content: (
+              <Card>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-4">{complaintAnalysisContent.summary.title}</h3>
+
+                  <div className="mb-6">
+                    <h4 className="font-medium mb-2">Key Learnings</h4>
+                    <ul className="list-disc pl-5 space-y-2">
+                      {complaintAnalysisContent.summary.points.map((point, index) => (
+                        <li key={index}>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mb-6">
+                    <h4 className="font-medium mb-2">Next Steps</h4>
+                    <p>{complaintAnalysisContent.summary.nextSteps}</p>
+                  </div>
+
+                  <div className="mt-6">
+                    <Button
+                      variant="primary"
+                      onClick={() => setModuleCompleted(true)}
+                    >
+                      Complete Level 1
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )
+          }
+        ]}
+        defaultTab={activeTab}
+        variant="underline"
+        className="mb-6"
+        onChange={setActiveTab}
+      />
+    </div>
+  );
+};
+
+export default ComplaintAnalysisModule;
