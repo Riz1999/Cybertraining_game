@@ -62,15 +62,15 @@ app.use('/api/modules', require('./routes/module.routes'));
 app.use('/api/progress', require('./routes/progress.routes'));
 app.use('/api/badges', require('./routes/badge.routes'));
 
-// Serve static files from React build in production
-if (config.server.env === 'production') {
-  app.use(express.static(path.join(__dirname, '../../client/build')));
+// // Serve static files from React build in production
+// if (config.server.env === 'production') {
+//   app.use(express.static(path.join(__dirname, '../../client/build')));
   
-  // Handle React routing - send all non-API requests to React app
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../client/build', 'index.html'));
-  });
-}
+//   // Handle React routing - send all non-API requests to React app
+//   app.get('*', (req, res) => {
+//     res.sendFile(path.join(__dirname, '../../client/build', 'index.html'));
+//   });
+// }
 
 // Import error middleware
 const { errorHandler, notFound } = require('./middleware/error.middleware');
