@@ -68,7 +68,7 @@ const buildPath = path.join(__dirname, '../../client/build');
 console.log('Looking for build files at:', buildPath);
 
 // Check if build directory exists
-const fs = require('fs');
+// const fs = require('fs');
 if (fs.existsSync(buildPath)) {
   console.log('Build directory found, serving static files');
   app.use(express.static(buildPath));
