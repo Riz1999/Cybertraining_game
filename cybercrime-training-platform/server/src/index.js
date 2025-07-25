@@ -3,6 +3,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const compression = require('compression');
+const path = require('path');
 
 // Import configuration and utilities
 const config = require('./config');
@@ -18,10 +19,13 @@ const app = express();
 app.use(helmet());
 
 // CORS configuration
-app.use(cors({
-  origin: config.cors.origin,
-  credentials: config.cors.credentials,
-}));
+const corsOptions = {
+  origin: config.server.env === 'production' 
+    ? process.env.FRONTEND_URL || true 
+    : '*',
+  credentials: true,
+};
+app.use(cors(corsOptions));
 
 // Request parsing middleware
 app.use(express.json());
@@ -42,12 +46,31 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Test endpoint with no authentication
+app.get('/api/test', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'API is working correctly',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // API routes
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/modules', require('./routes/module.routes'));
 app.use('/api/progress', require('./routes/progress.routes'));
 app.use('/api/badges', require('./routes/badge.routes'));
+
+// Serve static files from React build in production
+if (config.server.env === 'production') {
+  app.use(express.static(path.join(__dirname, '../../client/build')));
+  
+  // Handle React routing - send all non-API requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../client/build', 'index.html'));
+  });
+}
 
 // Import error middleware
 const { errorHandler, notFound } = require('./middleware/error.middleware');
@@ -69,10 +92,33 @@ const startServer = async () => {
     await badgeService.initializeBadges();
     logger.info('Badges initialized successfully');
     
-    // Start Express server
-    app.listen(config.server.port, () => {
+    // Start Express server - listen on all interfaces with error handling
+    const server = app.listen(config.server.port, '0.0.0.0', () => {
       logger.info(`Server running in ${config.server.env} mode on port ${config.server.port}`);
+      logger.info(`Server accessible at http://localhost:${config.server.port}`);
     });
+    
+    // Handle server errors
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        logger.error(`Port ${config.server.port} is already in use. Please use a different port.`);
+      } else {
+        logger.error(`Server error: ${error.message}`);
+      }
+      process.exit(1);
+    });
+    
+    // Log all incoming requests
+    app.use((req, res, next) => {
+      logger.info(`${req.method} ${req.url}`);
+      next();
+    });
+    
+    // Add a special test route that doesn't require database access
+    app.get('/test', (req, res) => {
+      res.status(200).send('Server is running correctly');
+    });
+    
   } catch (error) {
     logger.error(`Server startup failed: ${error.message}`);
     process.exit(1);

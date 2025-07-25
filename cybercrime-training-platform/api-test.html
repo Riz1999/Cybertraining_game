@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    <p>This page tests the connection to the API server running on port 5000.</p>
+    
+    <div>
+        <button id="testFetch">Test with Fetch API</button>
+        <button id="testXhr">Test with XMLHttpRequest</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function addResult(success, method, message, data) {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${success ? 'success' : 'error'}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let html = `<h3>${timestamp} - ${method} ${success ? 'Success' : 'Failed'}</h3>`;
+            html += `<p>${message}</p>`;
+            
+            if (data) {
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            resultDiv.innerHTML = html;
+            resultsDiv.prepend(resultDiv);
+        }
+        
+        document.getElementById('testFetch').addEventListener('click', async () => {
+            try {
+                addResult(true, 'Fetch', 'Attempting connection...', null);
+                
+                const response = await fetch('http://localhost:5000/api/test');
+                const data = await response.json();
+                
+                addResult(true, 'Fetch', 'Connection successful!', data);
+            } catch (error) {
+                addResult(false, 'Fetch', `Connection failed: ${error.message}`, null);
+            }
+        });
+        
+        document.getElementById('testXhr').addEventListener('click', () => {
+            const xhr = new XMLHttpRequest();
+            
+            addResult(true, 'XHR', 'Attempting connection...', null);
+            
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    const data = JSON.parse(xhr.responseText);
+                    addResult(true, 'XHR', 'Connection successful!', data);
+                } else {
+                    addResult(false, 'XHR', `Connection failed with status: ${xhr.status}`, null);
+                }
+            };
+            
+            xhr.onerror = function() {
+                addResult(false, 'XHR', 'Connection failed. Network error.', null);
+            };
+            
+            xhr.open('GET', 'http://localhost:5000/api/test');
+            xhr.send();
+        });
+    </script>
+</body>
+</html>

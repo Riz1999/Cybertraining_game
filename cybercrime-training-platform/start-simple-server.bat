@@ -1,0 +1,3 @@
+@echo off
+echo Starting simple auth server on port 5001...
+node simple-auth-server.js

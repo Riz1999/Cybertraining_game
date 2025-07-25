@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: cybercrime-training-platform
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: LOG_LEVEL
+        value: info
+      - key: MONGODB_URI
+        value: # Add your MongoDB Atlas connection string here
+    healthCheckPath: /api/health
+    autoDeploy: true

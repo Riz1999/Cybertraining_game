@@ -36,7 +36,7 @@ const evidenceCollectionContent = {
       {
         id: "mobile-phone",
         type: "device",
-        title: "Victim&apos;s Mobile Phone",
+        title: "Victim's Mobile Phone",
         description: "Samsung Galaxy S21 containing original SMS and banking app with transaction history",
         securityMeasures: [
           "Enable airplane mode to prevent remote wiping",
@@ -48,7 +48,7 @@ const evidenceCollectionContent = {
       {
         id: "laptop",
         type: "device",
-        title: "Victim&apos;s Laptop",
+        title: "Victim's Laptop",
         description: "Dell XPS 13 used to access banking services and check account after fraud notification",
         securityMeasures: [
           "Disconnect from internet before examination",
@@ -94,7 +94,7 @@ const evidenceCollectionContent = {
         {
           id: "mobile-evidence",
           name: "Mobile Phone Evidence",
-          description: "The victim&apos;s mobile phone containing SMS, app data, and transaction notifications",
+          description: "The victim's mobile phone containing SMS, app data, and transaction notifications",
           tools: [
             {
               id: "tool1",
@@ -153,7 +153,7 @@ const evidenceCollectionContent = {
             },
             {
               id: "tool9",
-              name: "Browser&apos;s Export Function",
+              name: "Browser's Export Function",
               correct: false,
               explanation: "May not capture all forensic artifacts and could alter timestamps"
             },
@@ -198,7 +198,7 @@ const additionalContent = {
             {
               id: "blank3",
               correctAnswer: "XXXX5678",
-              hint: "The victim&apos;s account number from the bank statement"
+              hint: "The victim's account number from the bank statement"
             },
             {
               id: "blank4",
@@ -468,20 +468,20 @@ const additionalContent = {
         options: [
           {
             id: "q5a",
-            text: "It&apos;s a password to access encrypted evidence"
+            text: "It's a password to access encrypted evidence"
           },
           {
             id: "q5b",
-            text: "It&apos;s a unique identifier for the investigating officer"
+            text: "It's a unique identifier for the investigating officer"
           },
           {
             id: "q5c",
-            text: "It&apos;s a unique digital fingerprint that verifies the integrity of the evidence",
+            text: "It's a unique digital fingerprint that verifies the integrity of the evidence",
             correct: true
           },
           {
             id: "q5d",
-            text: "It&apos;s a classification code for different types of cybercrimes"
+            text: "It's a classification code for different types of cybercrimes"
           }
         ],
         explanation: "A hash value is a unique digital fingerprint (a fixed-length string of characters) generated from a file or data. Any change to the data, no matter how small, will produce a completely different hash value. By documenting the hash value at the time of collection and verifying it later, investigators can prove the evidence has not been altered."

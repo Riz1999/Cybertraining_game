@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Layout from '../components/layout/Layout';
 import Card from '../components/ui/Card';
@@ -188,8 +188,8 @@ const DashboardPage = () => {
     dispatch(getProgressHistory());
   }, [dispatch]);
 
-  // Create tabs content
-  const tabsContent = [
+  // Create tabs content using useMemo to prevent recreation on every render
+  const tabsContent = React.useMemo(() => [
     {
       label: 'Overview',
       content: (
@@ -404,7 +404,7 @@ const DashboardPage = () => {
         </div>
       ),
     },
-  ];
+  ], [user, statistics, progress]);
 
   // Create mock progress history data for demonstration
   const mockProgressHistory = [
@@ -626,12 +626,12 @@ const DashboardPage = () => {
     )
   };
   
-  // Update tabs with real data
-  const updatedTabs = [
+  // Update tabs with real data using useMemo
+  const updatedTabs = useMemo(() => [
     overviewTab,
     tabsContent[1],
     tabsContent[2]
-  ];
+  ], [overviewTab, tabsContent]);
 
   return (
     <Layout>

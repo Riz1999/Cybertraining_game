@@ -35,10 +35,107 @@ const ModuleContentOptimizer = ({ module, children, isActive = true }) => {
       const timer = setTimeout(() => {
         setShowOptimizationBanner(false);
       }, 5000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [showOptimizationBanner]);
+
+  // Function to optimize a single child element
+  const optimizeChildElement = (child) => {
+    // Skip null or primitive children
+    if (!React.isValidElement(child)) {
+      return child;
+    }
+
+    // Handle different element types
+    if (child.type === 'img' || child.props.src) {
+      // Replace regular images with LazyImage
+      return (
+        <LazyImage
+          src={child.props.src}
+          alt={child.props.alt || 'Module image'}
+          className={child.props.className}
+          width={child.props.width}
+          height={child.props.height}
+          quality={optimizationLevel === 'high' ? 30 : optimizationLevel === 'medium' ? 50 : 80}
+          critical={isActive && child.props.critical}
+        />
+      );
+    }
+
+    // Handle video elements
+    if (child.type === 'video') {
+      // For high optimization, replace videos with a placeholder
+      if (optimizationLevel === 'high') {
+        return (
+          <div className="relative bg-gray-100 rounded-md p-4 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <p className="text-gray-600">Video content is available in normal bandwidth mode</p>
+            <button
+              className="mt-2 px-4 py-2 bg-police-blue text-white rounded-md hover:bg-blue-700"
+              onClick={() => setOptimizationLevel('none')}
+            >
+              Load Video Anyway
+            </button>
+          </div>
+        );
+      }
+
+      // For medium optimization, use lower quality video
+      if (optimizationLevel === 'medium') {
+        // Find a lower quality source if available
+        const sources = React.Children.toArray(child.props.children)
+          .filter(source => React.isValidElement(source) && source.type === 'source');
+
+        // If there are multiple sources, try to find a lower quality one
+        if (sources.length > 1) {
+          // Sort sources by quality (assuming they have data-quality attribute)
+          const sortedSources = [...sources].sort((a, b) => {
+            const qualityA = a.props['data-quality'] || 720;
+            const qualityB = b.props['data-quality'] || 720;
+            return qualityA - qualityB;
+          });
+
+          // Use the lowest quality source
+          const lowestQualitySource = sortedSources[0];
+
+          // Clone the video element with only the lowest quality source
+          return React.cloneElement(child, {
+            ...child.props,
+            children: lowestQualitySource,
+            preload: 'metadata', // Only load metadata initially
+            controls: true, // Ensure controls are visible
+          });
+        }
+      }
+    }
+
+    // Handle iframes (embedded content)
+    if (child.type === 'iframe') {
+      // For high optimization, replace iframes with a placeholder
+      if (optimizationLevel === 'high') {
+        return (
+          <div className="relative bg-gray-100 rounded-md p-4 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-gray-600">External content is available in normal bandwidth mode</p>
+            <button
+              className="mt-2 px-4 py-2 bg-police-blue text-white rounded-md hover:bg-blue-700"
+              onClick={() => setOptimizationLevel('none')}
+            >
+              Load Content Anyway
+            </button>
+          </div>
+        );
+      }
+    }
+
+    // Return unchanged element if no optimization needed
+    return child;
+  };
 
   // Function to optimize content based on optimization level
   const optimizeContent = () => {
@@ -48,109 +145,7 @@ const ModuleContentOptimizer = ({ module, children, isActive = true }) => {
     }
 
     // Clone children to modify them
-    return React.Children.map(children, child => {
-      // Skip null or primitive children
-      if (!React.isValidElement(child)) {
-        return child;
-      }
-
-      // Handle different element types
-      if (child.type === 'img' || child.props.src) {
-        // Replace regular images with LazyImage
-        return (
-          <LazyImage
-            src={child.props.src}
-            alt={child.props.alt || 'Module image'}
-            className={child.props.className}
-            width={child.props.width}
-            height={child.props.height}
-            quality={optimizationLevel === 'high' ? 30 : optimizationLevel === 'medium' ? 50 : 80}
-            critical={isActive && child.props.critical}
-          />
-        );
-      }
-
-      // Handle video elements
-      if (child.type === 'video') {
-        // For high optimization, replace videos with a placeholder
-        if (optimizationLevel === 'high') {
-          return (
-            <div className="relative bg-gray-100 rounded-md p-4 text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              <p className="text-gray-600">Video content is available in normal bandwidth mode</p>
-              <button 
-                className="mt-2 px-4 py-2 bg-police-blue text-white rounded-md hover:bg-blue-700"
-                onClick={() => setOptimizationLevel('none')}
-              >
-                Load Video Anyway
-              </button>
-            </div>
-          );
-        }
-
-        // For medium optimization, use lower quality video
-        if (optimizationLevel === 'medium') {
-          // Find a lower quality source if available
-          const sources = React.Children.toArray(child.props.children)
-            .filter(source => React.isValidElement(source) && source.type === 'source');
-          
-          // If there are multiple sources, try to find a lower quality one
-          if (sources.length > 1) {
-            // Sort sources by quality (assuming they have data-quality attribute)
-            const sortedSources = [...sources].sort((a, b) => {
-              const qualityA = a.props['data-quality'] || 720;
-              const qualityB = b.props['data-quality'] || 720;
-              return qualityA - qualityB;
-            });
-            
-            // Use the lowest quality source
-            const lowestQualitySource = sortedSources[0];
-            
-            // Clone the video element with only the lowest quality source
-            return React.cloneElement(child, {
-              ...child.props,
-              children: lowestQualitySource,
-              preload: 'metadata', // Only load metadata initially
-              controls: true, // Ensure controls are visible
-            });
-          }
-        }
-      }
-
-      // Handle iframes (embedded content)
-      if (child.type === 'iframe') {
-        // For high optimization, replace iframes with a placeholder
-        if (optimizationLevel === 'high') {
-          return (
-            <div className="relative bg-gray-100 rounded-md p-4 text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-gray-600">External content is available in normal bandwidth mode</p>
-              <button 
-                className="mt-2 px-4 py-2 bg-police-blue text-white rounded-md hover:bg-blue-700"
-                onClick={() => setOptimizationLevel('none')}
-              >
-                Load Content Anyway
-              </button>
-            </div>
-          );
-        }
-      }
-
-      // Recursively optimize children
-      if (child.props.children) {
-        return React.cloneElement(child, {
-          ...child.props,
-          children: optimizeContent(child.props.children),
-        });
-      }
-
-      // Return unchanged element if no optimization needed
-      return child;
-    });
+    return React.Children.map(children, child => optimizeChildElement(child));
   };
 
   return (

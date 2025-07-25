@@ -16,15 +16,12 @@ const Tabs = ({
   defaultTab = 0,
   onChange,
 }) => {
-  const [internalActiveTab, setInternalActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState(defaultTab);
   
-  // Use the defaultTab prop as the source of truth if it changes
+  // Use the defaultTab prop as the initial value only
   useEffect(() => {
-    setInternalActiveTab(defaultTab);
+    setActiveTab(defaultTab);
   }, [defaultTab]);
-
-  // The active tab is either controlled by the parent or internal state
-  const activeTab = defaultTab !== undefined ? defaultTab : internalActiveTab;
 
   // Define variant styles
   const variantStyles = {
@@ -60,7 +57,7 @@ const Tabs = ({
   const style = variantStyles[variant] || variantStyles.default;
 
   const handleTabClick = (index) => {
-    setInternalActiveTab(index);
+    setActiveTab(index);
     if (onChange) {
       onChange(index);
     }

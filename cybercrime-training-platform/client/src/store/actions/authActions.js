@@ -35,7 +35,14 @@ export const register = (userData) => async (dispatch) => {
     // Load user data
     dispatch(loadUser());
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message;
+    // Handle different types of errors
+    let errorMessage = 'Registration failed. Please try again.';
+    
+    if (error.message) {
+      errorMessage = error.message;
+    } else if (error.response && error.response.data) {
+      errorMessage = error.response.data.message || 'Server error. Please try again.';
+    }
     
     dispatch({
       type: AUTH_REGISTER_FAIL,
@@ -63,7 +70,14 @@ export const login = (credentials) => async (dispatch) => {
     // Load user data
     dispatch(loadUser());
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message;
+    // Handle different types of errors
+    let errorMessage = 'Login failed. Please try again.';
+    
+    if (error.message) {
+      errorMessage = error.message;
+    } else if (error.response && error.response.data) {
+      errorMessage = error.response.data.message || 'Server error. Please try again.';
+    }
     
     dispatch({
       type: AUTH_LOGIN_FAIL,

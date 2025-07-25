@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: cybercrime-training-platform
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm run install:all && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        fromDatabase:
+          name: cybercrime-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: LOG_LEVEL
+        value: info
+    healthCheckPath: /api/health
+
+databases:
+  - name: cybercrime-db
+    databaseName: cybercrime_training
+    user: admin
+    region: oregon
+    plan: free

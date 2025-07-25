@@ -43,7 +43,7 @@ const TransactionFreezeSimulation = ({ onComplete }) => {
     return {
       id: `COMP${Math.floor(Math.random() * 10000)}`,
       title: 'Online Banking Fraud Report',
-      description: `I, ${victimName}, would like to report a fraudulent transaction from my bank account. I received a call from someone claiming to be from my bank&apos;s security team. They convinced me to share my OTP for &quot;verification purposes&quot;. Shortly after, I noticed a transaction of ₹${amount.toLocaleString('en-IN')} was made from my account without my authorization.`,
+      description: `I, ${victimName}, would like to report a fraudulent transaction from my bank account. I received a call from someone claiming to be from my bank's security team. They convinced me to share my OTP for verification purposes. Shortly after, I noticed a transaction of ₹${amount.toLocaleString('en-IN')} was made from my account without my authorization.`,
       victim: {
         name: victimName,
         phone: `+91 ${Math.floor(Math.random() * 10000000000).toString().padStart(10, '0')}`,

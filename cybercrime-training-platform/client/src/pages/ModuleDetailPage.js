@@ -17,6 +17,7 @@ import VictimDialogSystem from '../components/simulation/dialog/VictimDialogSyst
 import TransactionFreezeSimulation from '../components/simulation/transaction/TransactionFreezeSimulation';
 import DocumentationActivity from '../components/activities/DocumentationActivity';
 import SystemActivity from '../components/activities/SystemActivity';
+import CoordinationActivity from '../components/activities/CoordinationActivity';
 import firDocumentationContent from '../data/firDocumentationContent';
 import cctnsFilingContent from '../data/cctnsFilingContent';
 import { Card } from '../components/ui';
@@ -1161,7 +1162,22 @@ const ModuleDetailPage = () => {
                     </div>
                   )}
 
-                  {!['interactive', 'quiz', 'dragdrop', 'simulation', 'time-critical', 'categorization', 'form', 'documentation', 'system'].includes(activityContent.type) && (
+                  {activityContent.type === 'coordination' && (
+                    <div className="space-y-4">
+                      <CoordinationActivity
+                        onComplete={(results) => {
+                          console.log('Coordination activity completed:', results);
+                          handleActivityComplete(activityContent.id);
+                          handleNextActivity();
+                        }}
+                        onProgress={(progress) => {
+                          console.log('Coordination progress:', progress);
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {!['interactive', 'quiz', 'dragdrop', 'simulation', 'time-critical', 'categorization', 'form', 'documentation', 'system', 'coordination'].includes(activityContent.type) && (
                     <div className="bg-gray-100 p-4 rounded-md">
                       <p className="text-gray-600">
                         Activity type &quot;{activityContent.type}&quot; is not yet implemented.

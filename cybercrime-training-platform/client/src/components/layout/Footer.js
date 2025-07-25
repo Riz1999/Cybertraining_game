@@ -12,12 +12,12 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
-            <h3 className="text-lg font-semibold">Cybercrime Training Platform</h3>
+            <h3 className="text-lg font-semibold">Digital Chase: Unravelling a Financial Cybercrime</h3>
             <p className="text-sm text-gray-400">Training police officers in cybercrime investigation</p>
           </div>
           
           <div className="text-sm text-gray-400">
-            &copy; {currentYear} Cybercrime Training Platform. All rights reserved.
+            &copy; {currentYear} Digital Chase: Unravelling a Financial Cybercrime. All rights reserved.
           </div>
         </div>
       </div>

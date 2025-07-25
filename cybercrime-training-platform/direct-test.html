@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        input, select {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        form {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h2 {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Direct API Test</h1>
+    <p>This page tests the connection to the simple auth server running on port 5001.</p>
+    
+    <div>
+        <button id="testHealth">Test Health Endpoint</button>
+        <button id="testApi">Test API Endpoint</button>
+    </div>
+    
+    <h2>Register User</h2>
+    <form id="registerForm">
+        <div>
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" value="Test User" required>
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="test@example.com" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" value="password123" required>
+        </div>
+        <div>
+            <label for="department">Department:</label>
+            <input type="text" id="department" name="department" value="Test Department" required>
+        </div>
+        <button type="submit">Register</button>
+    </form>
+    
+    <h2>Login User</h2>
+    <form id="loginForm">
+        <div>
+            <label for="loginEmail">Email:</label>
+            <input type="email" id="loginEmail" name="email" value="test@example.com" required>
+        </div>
+        <div>
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" name="password" value="password123" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+    
+    <div id="results"></div>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        const API_URL = 'http://localhost:5001/api';
+        
+        function addResult(success, method, message, data) {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${success ? 'success' : 'error'}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let html = `<h3>${timestamp} - ${method} ${success ? 'Success' : 'Failed'}</h3>`;
+            html += `<p>${message}</p>`;
+            
+            if (data) {
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            resultDiv.innerHTML = html;
+            resultsDiv.prepend(resultDiv);
+        }
+        
+        document.getElementById('testHealth').addEventListener('click', async () => {
+            try {
+                addResult(true, 'Health Check', 'Attempting connection...', null);
+                
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                addResult(true, 'Health Check', 'Connection successful!', data);
+            } catch (error) {
+                addResult(false, 'Health Check', `Connection failed: ${error.message}`, null);
+            }
+        });
+        
+        document.getElementById('testApi').addEventListener('click', async () => {
+            try {
+                addResult(true, 'API Test', 'Attempting connection...', null);
+                
+                const response = await fetch(`${API_URL}/test`);
+                const data = await response.json();
+                
+                addResult(true, 'API Test', 'Connection successful!', data);
+            } catch (error) {
+                addResult(false, 'API Test', `Connection failed: ${error.message}`, null);
+            }
+        });
+        
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                addResult(true, 'Register', 'Attempting to register user...', null);
+                
+                const formData = {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    department: document.getElementById('department').value
+                };
+                
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(true, 'Register', 'Registration successful!', data);
+                    
+                    // Store tokens
+                    if (data.success && data.data && data.data.tokens) {
+                        localStorage.setItem('accessToken', data.data.tokens.access.token);
+                        localStorage.setItem('refreshToken', data.data.tokens.refresh.token);
+                    }
+                } else {
+                    addResult(false, 'Register', `Registration failed with status: ${response.status}`, data);
+                }
+            } catch (error) {
+                addResult(false, 'Register', `Registration failed: ${error.message}`, null);
+            }
+        });
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                addResult(true, 'Login', 'Attempting to login...', null);
+                
+                const formData = {
+                    email: document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value
+                };
+                
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(true, 'Login', 'Login successful!', data);
+                    
+                    // Store tokens
+                    if (data.success && data.data && data.data.tokens) {
+                        localStorage.setItem('accessToken', data.data.tokens.access.token);
+                        localStorage.setItem('refreshToken', data.data.tokens.refresh.token);
+                    }
+                } else {
+                    addResult(false, 'Login', `Login failed with status: ${response.status}`, data);
+                }
+            } catch (error) {
+                addResult(false, 'Login', `Login failed: ${error.message}`, null);
+            }
+        });
+    </script>
+</body>
+</html>

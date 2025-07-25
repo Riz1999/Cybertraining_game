@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { register, clearAuthError } from '../../store/actions/authActions';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import authService from '../../services/authService';
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ const RegisterForm = () => {
   });
 
   const [formErrors, setFormErrors] = useState({});
+  const [connectionStatus, setConnectionStatus] = useState(null);
   
   const { name, email, password, confirmPassword, department } = formData;
   const dispatch = useDispatch();
@@ -27,6 +29,20 @@ const RegisterForm = () => {
     if (isAuthenticated) {
       navigate('/dashboard');
     }
+    
+    // Test API connection when component mounts
+    const testConnection = async () => {
+      try {
+        const result = await authService.testApiConnection();
+        setConnectionStatus(result);
+        console.log('Connection test result:', result);
+      } catch (error) {
+        console.error('Connection test error:', error);
+        setConnectionStatus({ success: false, error: error.message });
+      }
+    };
+    
+    testConnection();
     
     // Clear any previous errors when component mounts
     return () => {
@@ -97,6 +113,29 @@ const RegisterForm = () => {
   return (
     <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
       <h2 className="text-2xl font-heading font-bold text-center mb-6">Create an Account</h2>
+      
+      {connectionStatus && !connectionStatus.success && (
+        <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+          <p className="font-bold">API Connection Status: Failed</p>
+          <p>The application cannot connect to the server. Please make sure the server is running and accessible.</p>
+          <button 
+            onClick={async () => {
+              const result = await authService.testApiConnection();
+              setConnectionStatus(result);
+            }}
+            className="mt-2 bg-yellow-500 text-white py-1 px-3 rounded text-sm"
+          >
+            Test Connection Again
+          </button>
+        </div>
+      )}
+      
+      {connectionStatus && connectionStatus.success && (
+        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+          <p className="font-bold">API Connection Status: Success</p>
+          <p>Connected using: {connectionStatus.method}</p>
+        </div>
+      )}
       
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">

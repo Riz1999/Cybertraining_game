@@ -40,13 +40,23 @@ export const getModules = (query = {}) => async (dispatch) => {
 
     return data.data.modules;
   } catch (error) {
+    console.error('Error fetching modules:', error);
+    
+    // Return empty array as fallback to prevent app crashes
+    dispatch({
+      type: MODULES_SUCCESS,
+      payload: [],
+    });
+    
     dispatch({
       type: MODULES_FAIL,
       payload:
         error.response && error.response.data.message
           ? error.response.data.message
-          : error.message,
+          : 'Unable to fetch modules. Using offline mode.',
     });
+    
+    return [];
   }
 };
 
@@ -65,13 +75,23 @@ export const getModuleById = (id) => async (dispatch) => {
 
     return data.data.module;
   } catch (error) {
+    console.error('Error fetching module:', error);
+    
+    // Return null as fallback
+    dispatch({
+      type: MODULE_DETAIL_SUCCESS,
+      payload: null,
+    });
+    
     dispatch({
       type: MODULE_DETAIL_FAIL,
       payload:
         error.response && error.response.data.message
           ? error.response.data.message
-          : error.message,
+          : 'Unable to fetch module details. Using offline mode.',
     });
+    
+    return null;
   }
 };
 
@@ -82,6 +102,15 @@ export const getAvailableModules = () => async (dispatch, getState) => {
 
     // Get token from state
     const { auth: { user } } = getState();
+
+    // Check if user exists and has token
+    if (!user || !user.token) {
+      dispatch({
+        type: AVAILABLE_MODULES_SUCCESS,
+        payload: [],
+      });
+      return [];
+    }
 
     // Set headers
     const config = {
@@ -101,13 +130,23 @@ export const getAvailableModules = () => async (dispatch, getState) => {
 
     return data.data.modules;
   } catch (error) {
+    console.error('Error fetching available modules:', error);
+    
+    // Return empty array as fallback
+    dispatch({
+      type: AVAILABLE_MODULES_SUCCESS,
+      payload: [],
+    });
+    
     dispatch({
       type: AVAILABLE_MODULES_FAIL,
       payload:
         error.response && error.response.data.message
           ? error.response.data.message
-          : error.message,
+          : 'Unable to fetch available modules.',
     });
+    
+    return [];
   }
 };
 
