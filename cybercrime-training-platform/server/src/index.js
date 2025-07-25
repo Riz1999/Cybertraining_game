@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const compression = require('compression');
 const path = require('path');
+const fs = require('fs');
 
 // Import configuration and utilities
 const config = require('./config');
@@ -62,13 +63,29 @@ app.use('/api/modules', require('./routes/module.routes'));
 app.use('/api/progress', require('./routes/progress.routes'));
 app.use('/api/badges', require('./routes/badge.routes'));
 
-// Serve static files from React build in production
-if (config.server.env === 'production') {
-  app.use(express.static(path.join(__dirname, '../../client/build')));
+// Serve static files from React build
+const buildPath = path.join(__dirname, '../../client/build');
+console.log('Looking for build files at:', buildPath);
+
+// Check if build directory exists
+const fs = require('fs');
+if (fs.existsSync(buildPath)) {
+  console.log('Build directory found, serving static files');
+  app.use(express.static(buildPath));
 
   // Handle React routing - send all non-API requests to React app
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../client/build', 'index.html'));
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
+} else {
+  console.log('Build directory not found at:', buildPath);
+  // Fallback route for when build doesn't exist
+  app.get('/', (req, res) => {
+    res.json({
+      message: 'Server is running but React build not found',
+      buildPath: buildPath,
+      environment: config.server.env
+    });
   });
 }
 
