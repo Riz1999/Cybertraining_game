@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use the main server on port 5000
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://cybertraining-game-2.onrender.com/api';
 
 /**
  * Register a new user
@@ -14,7 +14,7 @@ export const register = async (userData) => {
     console.log('Attempting to register user with userData:', userData);
     
     // Try using fetch API instead of axios
-    const directUrl = 'http://localhost:5000/api/auth/register';
+    const directUrl = `${API_URL}/api/auth/register`;
     console.log('Attempting fetch to:', directUrl);
     
     const fetchResponse = await fetch(directUrl, {
@@ -91,7 +91,7 @@ export const login = async (credentials) => {
     console.log('Attempting to login with credentials:', credentials);
     
     // Try using fetch API instead of axios
-    const directUrl = 'http://localhost:5000/api/auth/login';
+    const directUrl = `${API_URL}/api/auth/login`;
     console.log('Attempting fetch to:', directUrl);
     
     const fetchResponse = await fetch(directUrl, {
@@ -331,7 +331,7 @@ export const testApiConnection = async () => {
     
     // Try direct URL with fetch
     try {
-      const fetchResponse = await fetch('http://localhost:5000/api/test');
+      const fetchResponse = await fetch(`${API_URL}/api/test`);
       if (fetchResponse.ok) {
         const data = await fetchResponse.json();
         console.log('Direct fetch test successful:', data);
@@ -355,7 +355,7 @@ export const testApiConnection = async () => {
     
     // Try direct URL with axios
     try {
-      const axiosResponse = await axios.get('http://localhost:5000/api/test');
+      const axiosResponse = await axios.get(`${API_URL}/api/test`);
       console.log('Direct axios test successful:', axiosResponse.data);
       return { success: true, method: 'direct axios', data: axiosResponse.data };
     } catch (axiosError) {
